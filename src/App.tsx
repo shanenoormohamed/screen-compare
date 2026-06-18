@@ -3,7 +3,7 @@ import { ExportButton } from './components/ExportButton'
 import { GridPicker } from './components/GridPicker'
 import { TableEditor } from './components/TableEditor'
 import {
-  createDefaultTable,
+  createEmptyTable,
   normalizeRowTitles,
   resizeTable,
 } from './lib/table'
@@ -11,29 +11,38 @@ import type { TableState } from './types'
 import './App.css'
 
 function App() {
-  const [table, setTable] = useState<TableState>(() => createDefaultTable())
+  const [draftRows, setDraftRows] = useState(2)
+  const [draftCols, setDraftCols] = useState(2)
+  const [table, setTable] = useState<TableState | null>(null)
 
   const updateTable = useCallback(
     (updater: TableState | ((prev: TableState) => TableState)) => {
-      setTable((prev) =>
-        normalizeRowTitles(
+      setTable((prev) => {
+        if (!prev) return prev
+        return normalizeRowTitles(
           typeof updater === 'function' ? updater(prev) : updater,
-        ),
-      )
+        )
+      })
     },
     [],
   )
 
-  const handleGridSelect = useCallback(
-    (rows: number, cols: number) => {
-      updateTable((prev) => resizeTable(prev, rows, cols))
-    },
-    [updateTable],
-  )
+  const handleDraftChange = useCallback((rows: number, cols: number) => {
+    setDraftRows(rows)
+    setDraftCols(cols)
+  }, [])
+
+  const handleGenerateLayout = useCallback(() => {
+    setTable((prev) => {
+      if (!prev) return createEmptyTable(draftRows, draftCols)
+      return resizeTable(prev, draftRows, draftCols)
+    })
+  }, [draftRows, draftCols])
 
   const hasAnyImage = useMemo(
-    () => table.cells.some((row) => row.some((cell) => cell !== null)),
-    [table.cells],
+    () =>
+      table?.cells.some((row) => row.some((cell) => cell !== null)) ?? false,
+    [table],
   )
 
   return (
@@ -41,22 +50,27 @@ function App() {
       <header className="app__header">
         <h1>Screen Compare</h1>
         <p>
-          Pick the grid size, label rows and columns, drop screenshots, export
+          Pick the grid size, generate the layout, drop screenshots, then export
           to PDF.
         </p>
       </header>
 
       <GridPicker
-        rows={table.rows}
-        cols={table.cols}
-        onSelect={handleGridSelect}
+        rows={draftRows}
+        cols={draftCols}
+        onDraftChange={handleDraftChange}
+        onGenerate={handleGenerateLayout}
       />
 
-      <TableEditor table={table} onChange={updateTable} />
+      {table && (
+        <>
+          <TableEditor table={table} onChange={updateTable} />
 
-      <section className="export-section">
-        <ExportButton table={table} disabled={!hasAnyImage} />
-      </section>
+          <section className="export-section">
+            <ExportButton table={table} disabled={!hasAnyImage} />
+          </section>
+        </>
+      )}
     </div>
   )
 }

@@ -98,6 +98,24 @@
   border-color: var(--accent);
 }
 
+.generate-layout-btn {
+  display: block;
+  margin-top: 1rem;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.generate-layout-btn:hover {
+  filter: brightness(1.05);
+}
+
 .table-editor {
   margin-top: 2rem;
 }

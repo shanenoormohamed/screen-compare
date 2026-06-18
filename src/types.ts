@@ -11,4 +11,5 @@ export type TableState = {
   cells: (CellImage | null)[][]
 }
 
-export const MAX_GRID = 8
+export const MAX_ROWS = 6
+export const MAX_COLS = 3

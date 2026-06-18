@@ -135,7 +135,7 @@ export function ExportButton({ table, disabled }: Props) {
       onClick={handleExport}
       disabled={disabled || exporting}
     >
-      {exporting ? 'Exporting…' : 'Export PDF'}
+      {exporting ? 'Generating…' : 'Generate PDF'}
     </button>
   )
 }

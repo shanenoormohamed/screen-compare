@@ -1,13 +1,19 @@
 import { useCallback, useState } from 'react'
-import { MAX_GRID } from '../types'
+import { MAX_COLS, MAX_ROWS } from '../types'
 
 type GridPickerProps = {
   rows: number
   cols: number
-  onSelect: (rows: number, cols: number) => void
+  onDraftChange: (rows: number, cols: number) => void
+  onGenerate: () => void
 }
 
-export function GridPicker({ rows, cols, onSelect }: GridPickerProps) {
+export function GridPicker({
+  rows,
+  cols,
+  onDraftChange,
+  onGenerate,
+}: GridPickerProps) {
   const [hover, setHover] = useState({ rows: 0, cols: 0 })
   const [dragging, setDragging] = useState(false)
 
@@ -24,11 +30,11 @@ export function GridPicker({ rows, cols, onSelect }: GridPickerProps) {
 
   const commitSelection = useCallback(
     (r: number, c: number) => {
-      onSelect(r + 1, c + 1)
+      onDraftChange(r + 1, c + 1)
       setDragging(false)
       setHover({ rows: 0, cols: 0 })
     },
-    [onSelect],
+    [onDraftChange],
   )
 
   return (
@@ -39,9 +45,7 @@ export function GridPicker({ rows, cols, onSelect }: GridPickerProps) {
         a table in a doc.
       </p>
       <p className="grid-picker__size" aria-live="polite">
-        {previewRows > 0 && previewCols > 0
-          ? `${previewRows} × ${previewCols} table`
-          : `${rows} × ${cols} table`}
+        {previewRows} × {previewCols} table
       </p>
       <div
         className="grid-picker__matrix"
@@ -50,9 +54,9 @@ export function GridPicker({ rows, cols, onSelect }: GridPickerProps) {
           setHover({ rows: 0, cols: 0 })
         }}
       >
-        {Array.from({ length: MAX_GRID }, (_, row) => (
+        {Array.from({ length: MAX_ROWS }, (_, row) => (
           <div key={row} className="grid-picker__row">
-            {Array.from({ length: MAX_GRID }, (_, col) => {
+            {Array.from({ length: MAX_COLS }, (_, col) => {
               const active =
                 row < previewRows && col < previewCols && previewRows > 0
               return (
@@ -75,6 +79,13 @@ export function GridPicker({ rows, cols, onSelect }: GridPickerProps) {
           </div>
         ))}
       </div>
+      <button
+        type="button"
+        className="generate-layout-btn"
+        onClick={onGenerate}
+      >
+        Generate layout
+      </button>
     </section>
   )
 }

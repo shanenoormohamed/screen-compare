@@ -16,9 +16,7 @@ function App() {
   const updateTable = useCallback(
     (updater: TableState | ((prev: TableState) => TableState)) => {
       setTable((prev) =>
-        normalizeRowTitles(
-          typeof updater === 'function' ? updater(prev) : updater,
-        ),
+        typeof updater === 'function' ? updater(prev) : updater,
       );
     },
     [],
@@ -26,7 +24,7 @@ function App() {
 
   const handleGridSelect = useCallback(
     (rows: number, cols: number) => {
-      updateTable((prev) => resizeTable(prev, rows, cols));
+      updateTable((prev) => normalizeRowTitles(resizeTable(prev, rows, cols)));
     },
     [updateTable],
   );

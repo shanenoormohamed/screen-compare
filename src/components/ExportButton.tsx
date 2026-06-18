@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { jsPDF } from 'jspdf'
-import type { GridState } from '../types'
+import type { TableState } from '../types'
 
 interface Props {
-  grid: GridState
+  table: TableState
   disabled: boolean
 }
 
@@ -16,7 +16,7 @@ function loadImage(url: string): Promise<HTMLImageElement> {
   })
 }
 
-export function ExportButton({ grid, disabled }: Props) {
+export function ExportButton({ table, disabled }: Props) {
   const [exporting, setExporting] = useState(false)
 
   async function handleExport() {
@@ -32,7 +32,6 @@ export function ExportButton({ grid, disabled }: Props) {
       const colHeaderRowHeight = 24
       const gutter = 6
 
-      // Page title
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(16)
       doc.setTextColor(17, 24, 39)
@@ -43,18 +42,15 @@ export function ExportButton({ grid, disabled }: Props) {
       const tableWidth = pageWidth - margin * 2
       const tableHeight = pageHeight - tableTop - margin
 
-      const numCols = grid.columnLabels.length
-      const numRows = grid.rowLabels.length
+      const numCols = table.cols
+      const numRows = table.rows
 
-      // Column widths: first col is row labels, rest are equal
       const dataColsWidth = tableWidth - rowLabelColWidth - gutter
       const colWidth = (dataColsWidth - gutter * (numCols - 1)) / numCols
 
-      // Row heights: first row is column headers, rest are equal
       const dataRowsHeight = tableHeight - colHeaderRowHeight - gutter
       const rowHeight = (dataRowsHeight - gutter * (numRows - 1)) / numRows
 
-      // Column header row
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(9)
       doc.setTextColor(17, 24, 39)
@@ -65,18 +61,16 @@ export function ExportButton({ grid, disabled }: Props) {
         doc.setDrawColor(229, 231, 235)
         doc.rect(x, y, colWidth, colHeaderRowHeight, 'FD')
         doc.text(
-          grid.columnLabels[c] || `Col ${c + 1}`,
+          table.columnTitles[c] || `Col ${c + 1}`,
           x + 4,
           y + colHeaderRowHeight - 7,
-          { maxWidth: colWidth - 8 }
+          { maxWidth: colWidth - 8 },
         )
       }
 
-      // Data rows
       for (let r = 0; r < numRows; r++) {
         const rowY = tableTop + colHeaderRowHeight + gutter + r * (rowHeight + gutter)
 
-        // Row label cell
         doc.setFont('helvetica', 'bold')
         doc.setFontSize(9)
         doc.setTextColor(17, 24, 39)
@@ -84,18 +78,16 @@ export function ExportButton({ grid, disabled }: Props) {
         doc.setDrawColor(229, 231, 235)
         doc.rect(tableLeft, rowY, rowLabelColWidth, rowHeight, 'FD')
         const rowLabelLines = doc.splitTextToSize(
-          grid.rowLabels[r] || `Row ${r + 1}`,
-          rowLabelColWidth - 8
+          table.rowTitles[r] || `Row ${r + 1}`,
+          rowLabelColWidth - 8,
         )
         doc.text(rowLabelLines, tableLeft + 4, rowY + 12)
 
-        // Image cells
         for (let c = 0; c < numCols; c++) {
           const cellX = tableLeft + rowLabelColWidth + gutter + c * (colWidth + gutter)
-          const cell = grid.cells[r][c]
+          const cell = table.cells[r][c]
 
-          if (!cell.imageUrl) {
-            // Empty placeholder
+          if (!cell) {
             doc.setDrawColor(229, 231, 235)
             doc.setFillColor(249, 250, 251)
             doc.rect(cellX, rowY, colWidth, rowHeight, 'FD')
@@ -103,7 +95,7 @@ export function ExportButton({ grid, disabled }: Props) {
           }
 
           try {
-            const img = await loadImage(cell.imageUrl)
+            const img = await loadImage(cell.previewUrl)
             const scaleW = colWidth / img.naturalWidth
             const scaleH = rowHeight / img.naturalHeight
             const scale = Math.min(scaleW, scaleH)
@@ -111,8 +103,8 @@ export function ExportButton({ grid, disabled }: Props) {
             const drawH = img.naturalHeight * scale
             const drawX = cellX + (colWidth - drawW) / 2
             const drawY = rowY + (rowHeight - drawH) / 2
-            const format = cell.imageFile?.type === 'image/png' ? 'PNG' : 'JPEG'
-            doc.addImage(cell.imageUrl, format, drawX, drawY, drawW, drawH)
+            const format = cell.file.type === 'image/png' ? 'PNG' : 'JPEG'
+            doc.addImage(cell.previewUrl, format, drawX, drawY, drawW, drawH)
           } catch {
             doc.setDrawColor(229, 231, 235)
             doc.setFillColor(249, 250, 251)
@@ -124,7 +116,7 @@ export function ExportButton({ grid, disabled }: Props) {
               'Image unavailable',
               cellX + colWidth / 2,
               rowY + rowHeight / 2,
-              { align: 'center' }
+              { align: 'center' },
             )
           }
         }

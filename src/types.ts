@@ -1,11 +1,14 @@
-export interface Cell {
-  id: string
-  imageUrl: string | null
-  imageFile: File | null
+export type CellImage = {
+  file: File
+  previewUrl: string
 }
 
-export interface GridState {
-  columnLabels: string[]
-  rowLabels: string[]
-  cells: Cell[][]  // cells[rowIndex][colIndex]
+export type TableState = {
+  rows: number
+  cols: number
+  columnTitles: string[]
+  rowTitles: string[]
+  cells: (CellImage | null)[][]
 }
+
+export const MAX_GRID = 8

@@ -1,73 +1,36 @@
-# React + TypeScript + Vite
+# Screen Compare
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Compare screenshots in a scalable grid with custom row and column labels. Export to PDF.
 
-Currently, two official plugins are available:
+**Live app:** https://shanenoormohamed.github.io/screen-compare/
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Run locally
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open http://localhost:5173/
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## How to use
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1. **Edit labels** — column headers (e.g. Before (main), After (branch)) and row labels (e.g. iOS Light, iOS Dark).
+2. **Add rows / columns** — scale the grid for light/dark, iOS/Android, or any comparison you need.
+3. **Drop images** — PNG or JPG into each cell (drag-and-drop or click).
+4. **Export PDF** — downloads a landscape table with labels and images.
+
+## Example layout
+
+|  | Before (main) | After (branch) |
+| --- | --- | --- |
+| iOS Light | image | image |
+| iOS Dark | image | image |
+| Android Light | image | image |
+| Android Dark | image | image |
+
+All processing happens in the browser — images are never uploaded.
+
+## Deploy
+
+Pushes to `main` deploy automatically via GitHub Actions to GitHub Pages.

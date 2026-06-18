@@ -1,79 +1,143 @@
 import { useCallback, useMemo, useState } from 'react'
 import { CompareGrid } from './components/CompareGrid'
 import { ExportButton } from './components/ExportButton'
-import type { Slot } from './types'
+import type { Cell, GridState } from './types'
 import './App.css'
 
-function createSlot(label: string): Slot {
-  return { id: crypto.randomUUID(), label, imageUrl: null, imageFile: null }
+function createCell(): Cell {
+  return { id: crypto.randomUUID(), imageUrl: null, imageFile: null }
+}
+
+function createRow(numCols: number): Cell[] {
+  return Array.from({ length: numCols }, () => createCell())
+}
+
+const DEFAULT_STATE: GridState = {
+  columnLabels: ['Before (main)', 'After (branch)'],
+  rowLabels: ['iOS', 'Android'],
+  cells: [
+    [createCell(), createCell()],
+    [createCell(), createCell()],
+  ],
 }
 
 function App() {
-  const [slots, setSlots] = useState<Slot[]>([
-    createSlot('Screen 1'),
-    createSlot('Screen 2'),
-  ])
+  const [grid, setGrid] = useState<GridState>(DEFAULT_STATE)
 
-  const hasAnyImage = useMemo(() => slots.some((s) => s.imageUrl !== null), [slots])
+  const hasAnyImage = useMemo(
+    () => grid.cells.some((row) => row.some((cell) => cell.imageUrl !== null)),
+    [grid.cells]
+  )
 
-  const handleLabelChange = useCallback((id: string, label: string) => {
-    setSlots((prev) => prev.map((s) => (s.id === id ? { ...s, label } : s)))
-  }, [])
-
-  const handleImageSet = useCallback((id: string, file: File) => {
-    const url = URL.createObjectURL(file)
-    setSlots((prev) =>
-      prev.map((s) => {
-        if (s.id !== id) return s
-        if (s.imageUrl) URL.revokeObjectURL(s.imageUrl)
-        return { ...s, imageUrl: url, imageFile: file }
-      })
-    )
-  }, [])
-
-  const handleImageClear = useCallback((id: string) => {
-    setSlots((prev) =>
-      prev.map((s) => {
-        if (s.id !== id) return s
-        if (s.imageUrl) URL.revokeObjectURL(s.imageUrl)
-        return { ...s, imageUrl: null, imageFile: null }
-      })
-    )
-  }, [])
-
-  const handleRemove = useCallback((id: string) => {
-    setSlots((prev) => {
-      if (prev.length <= 1) return prev
-      const slot = prev.find((s) => s.id === id)
-      if (slot?.imageUrl) URL.revokeObjectURL(slot.imageUrl)
-      return prev.filter((s) => s.id !== id)
+  const handleColumnLabelChange = useCallback((colIdx: number, label: string) => {
+    setGrid((prev) => {
+      const columnLabels = [...prev.columnLabels]
+      columnLabels[colIdx] = label
+      return { ...prev, columnLabels }
     })
   }, [])
 
-  const handleAddSlot = useCallback(() => {
-    setSlots((prev) => [...prev, createSlot(`Screen ${prev.length + 1}`)])
+  const handleRowLabelChange = useCallback((rowIdx: number, label: string) => {
+    setGrid((prev) => {
+      const rowLabels = [...prev.rowLabels]
+      rowLabels[rowIdx] = label
+      return { ...prev, rowLabels }
+    })
+  }, [])
+
+  const handleImageSet = useCallback((rowIdx: number, colIdx: number, file: File) => {
+    const url = URL.createObjectURL(file)
+    setGrid((prev) => {
+      const cells = prev.cells.map((row, r) =>
+        row.map((cell, c) => {
+          if (r !== rowIdx || c !== colIdx) return cell
+          if (cell.imageUrl) URL.revokeObjectURL(cell.imageUrl)
+          return { ...cell, imageUrl: url, imageFile: file }
+        })
+      )
+      return { ...prev, cells }
+    })
+  }, [])
+
+  const handleImageClear = useCallback((rowIdx: number, colIdx: number) => {
+    setGrid((prev) => {
+      const cells = prev.cells.map((row, r) =>
+        row.map((cell, c) => {
+          if (r !== rowIdx || c !== colIdx) return cell
+          if (cell.imageUrl) URL.revokeObjectURL(cell.imageUrl)
+          return { ...cell, imageUrl: null, imageFile: null }
+        })
+      )
+      return { ...prev, cells }
+    })
+  }, [])
+
+  const handleAddRow = useCallback(() => {
+    setGrid((prev) => ({
+      ...prev,
+      rowLabels: [...prev.rowLabels, `Row ${prev.rowLabels.length + 1}`],
+      cells: [...prev.cells, createRow(prev.columnLabels.length)],
+    }))
+  }, [])
+
+  const handleRemoveRow = useCallback((rowIdx: number) => {
+    setGrid((prev) => {
+      if (prev.rowLabels.length <= 1) return prev
+      prev.cells[rowIdx].forEach((cell) => {
+        if (cell.imageUrl) URL.revokeObjectURL(cell.imageUrl)
+      })
+      return {
+        ...prev,
+        rowLabels: prev.rowLabels.filter((_, i) => i !== rowIdx),
+        cells: prev.cells.filter((_, i) => i !== rowIdx),
+      }
+    })
+  }, [])
+
+  const handleAddColumn = useCallback(() => {
+    setGrid((prev) => ({
+      ...prev,
+      columnLabels: [...prev.columnLabels, `Col ${prev.columnLabels.length + 1}`],
+      cells: prev.cells.map((row) => [...row, createCell()]),
+    }))
+  }, [])
+
+  const handleRemoveColumn = useCallback((colIdx: number) => {
+    setGrid((prev) => {
+      if (prev.columnLabels.length <= 1) return prev
+      prev.cells.forEach((row) => {
+        const cell = row[colIdx]
+        if (cell.imageUrl) URL.revokeObjectURL(cell.imageUrl)
+      })
+      return {
+        ...prev,
+        columnLabels: prev.columnLabels.filter((_, i) => i !== colIdx),
+        cells: prev.cells.map((row) => row.filter((_, i) => i !== colIdx)),
+      }
+    })
   }, [])
 
   return (
     <div className="app">
       <header className="app__header">
         <h1>Screen Compare</h1>
-        <p>Compare screenshots side by side with custom labels. Export to PDF.</p>
+        <p>Compare screenshots in a grid with row and column labels. Export to PDF.</p>
       </header>
 
       <div className="app__toolbar">
-        <button type="button" className="add-slot-btn" onClick={handleAddSlot}>
-          + Add slot
-        </button>
-        <ExportButton slots={slots} disabled={!hasAnyImage} />
+        <ExportButton grid={grid} disabled={!hasAnyImage} />
       </div>
 
       <CompareGrid
-        slots={slots}
-        onLabelChange={handleLabelChange}
+        grid={grid}
+        onColumnLabelChange={handleColumnLabelChange}
+        onRowLabelChange={handleRowLabelChange}
         onImageSet={handleImageSet}
         onImageClear={handleImageClear}
-        onRemove={handleRemove}
+        onAddRow={handleAddRow}
+        onRemoveRow={handleRemoveRow}
+        onAddColumn={handleAddColumn}
+        onRemoveColumn={handleRemoveColumn}
       />
     </div>
   )

@@ -1,16 +1,13 @@
 import { useRef, useState } from 'react'
-import type { Slot } from '../types'
+import type { Cell } from '../types'
 
 interface Props {
-  slot: Slot
-  canRemove: boolean
-  onLabelChange: (id: string, label: string) => void
-  onImageSet: (id: string, file: File) => void
-  onImageClear: (id: string) => void
-  onRemove: (id: string) => void
+  cell: Cell
+  onImageSet: (file: File) => void
+  onImageClear: () => void
 }
 
-export function SlotCard({ slot, canRemove, onLabelChange, onImageSet, onImageClear, onRemove }: Props) {
+export function CellCard({ cell, onImageSet, onImageClear }: Props) {
   const [dragOver, setDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -18,7 +15,7 @@ export function SlotCard({ slot, canRemove, onLabelChange, onImageSet, onImageCl
     if (!files || files.length === 0) return
     const file = files[0]
     if (!file.type.startsWith('image/')) return
-    onImageSet(slot.id, file)
+    onImageSet(file)
   }
 
   function handleDrop(e: React.DragEvent) {
@@ -41,34 +38,15 @@ export function SlotCard({ slot, canRemove, onLabelChange, onImageSet, onImageCl
   }
 
   return (
-    <div className="slot-card">
-      <div className="slot-card__header">
-        <input
-          type="text"
-          className="slot-card__label"
-          value={slot.label}
-          onChange={(e) => onLabelChange(slot.id, e.target.value)}
-          placeholder="Label…"
-        />
-        <button
-          type="button"
-          className="slot-card__remove"
-          onClick={() => onRemove(slot.id)}
-          disabled={!canRemove}
-          title="Remove slot"
-        >
-          ×
-        </button>
-      </div>
-
-      {slot.imageUrl ? (
-        <div className="slot-card__preview">
-          <img src={slot.imageUrl} alt={slot.label || 'Screenshot'} />
-          <div className="slot-card__preview-actions">
-            <button type="button" className="slot-card__replace" onClick={handleClick}>
+    <div className="cell-card">
+      {cell.imageUrl ? (
+        <div className="cell-card__preview">
+          <img src={cell.imageUrl} alt="Screenshot" />
+          <div className="cell-card__preview-actions">
+            <button type="button" className="cell-card__replace" onClick={handleClick}>
               Replace
             </button>
-            <button type="button" className="slot-card__clear" onClick={() => onImageClear(slot.id)}>
+            <button type="button" className="cell-card__clear" onClick={onImageClear}>
               Remove
             </button>
           </div>
@@ -85,8 +63,8 @@ export function SlotCard({ slot, canRemove, onLabelChange, onImageSet, onImageCl
           onKeyDown={(e) => e.key === 'Enter' && handleClick()}
         >
           <span className="drop-zone__icon">🖼</span>
-          <p className="drop-zone__hint">Drop image here or click to upload</p>
-          <p className="drop-zone__hint">PNG, JPG supported</p>
+          <p className="drop-zone__hint">Drop or click to upload</p>
+          <p className="drop-zone__hint">PNG · JPG</p>
         </div>
       )}
 

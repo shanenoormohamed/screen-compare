@@ -1,11 +1,11 @@
 .app {
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 2rem 1.5rem 3rem;
 }
 
 .app__header {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .app__header h1 {
@@ -20,44 +20,68 @@
   color: var(--text-muted);
 }
 
-/* Compare Grid */
-.compare-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: flex-start;
-}
-
-.compare-grid--many {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-}
-
-/* Slot Card */
-.slot-card {
-  flex: 1 1 260px;
-  min-width: 220px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.875rem;
-  position: relative;
-}
-
-.slot-card__header {
+/* Toolbar */
+.app__toolbar {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
 }
 
-.slot-card__label {
+/* ─── 2-D Compare Table ──────────────────────────────────────────── */
+
+.compare-table {
+  display: grid;
+  gap: 0.5rem;
+  align-items: start;
+  overflow-x: auto;
+}
+
+/* Top-left corner — intentionally empty */
+.compare-table__corner {
+  min-height: 1px;
+}
+
+/* Column header cells (top row) */
+.compare-table__col-header {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+/* Row header cells (left column) */
+.compare-table__row-header {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+/* Image cell */
+.compare-table__cell {
+  min-width: 0;
+}
+
+/* + Col button cell */
+.compare-table__add-col {
+  display: flex;
+  align-items: center;
+  padding-left: 0.25rem;
+}
+
+/* + Add Row row */
+.compare-table__add-row {
+  padding-top: 0.25rem;
+}
+
+/* ─── Editable labels inside row/col headers ─────────────────────── */
+
+.grid-label-input {
   flex: 1;
-  font-size: 0.875rem;
+  min-width: 0;
+  font-size: 0.8125rem;
   font-weight: 600;
-  padding: 0.375rem 0.5rem;
+  padding: 0.3rem 0.5rem;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--bg);
@@ -65,50 +89,85 @@
   font-family: inherit;
 }
 
-.slot-card__label:focus {
+.grid-label-input:focus {
   outline: none;
   border-color: var(--accent);
 }
 
-.slot-card__remove {
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 6px;
+/* ─── × Remove buttons on row / col headers ──────────────────────── */
+
+.grid-remove-btn {
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  line-height: 1;
+  font-size: 1rem;
+  border-radius: 5px;
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text-muted);
   cursor: pointer;
-  font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
 }
 
-.slot-card__remove:hover {
+.grid-remove-btn:hover:not(:disabled) {
   border-color: #dc2626;
   color: #dc2626;
 }
 
-.slot-card__remove:disabled {
+.grid-remove-btn:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+}
+
+/* ─── + Add Row / + Col buttons ─────────────────────────────────── */
+
+.add-axis-btn {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 0.375rem 0.75rem;
+  border: 1px dashed var(--accent);
+  border-radius: 7px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.add-axis-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ─── Cell Card ─────────────────────────────────────────────────── */
+
+.cell-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Drop Zone */
 .drop-zone {
   border: 2px dashed var(--border);
   border-radius: 8px;
-  min-height: 180px;
+  min-height: 160px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.375rem;
   background: var(--bg);
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
-  padding: 1rem;
+  padding: 0.75rem;
 }
 
 .drop-zone:hover,
@@ -118,26 +177,26 @@
 }
 
 .drop-zone__icon {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   line-height: 1;
   opacity: 0.5;
 }
 
 .drop-zone__hint {
   margin: 0;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   text-align: center;
 }
 
-/* Image preview inside card */
-.slot-card__preview {
+/* Image preview */
+.cell-card__preview {
   position: relative;
 }
 
-.slot-card__preview img {
+.cell-card__preview img {
   width: 100%;
-  max-height: 320px;
+  max-height: 280px;
   object-fit: contain;
   border-radius: 6px;
   border: 1px solid var(--border);
@@ -145,16 +204,16 @@
   display: block;
 }
 
-.slot-card__preview-actions {
+.cell-card__preview-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.375rem;
   margin-top: 0.375rem;
 }
 
-.slot-card__replace,
-.slot-card__clear {
-  font-size: 0.75rem;
-  padding: 0.25rem 0.625rem;
+.cell-card__replace,
+.cell-card__clear {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
   border-radius: 4px;
   border: 1px solid var(--border);
   background: var(--bg);
@@ -163,41 +222,17 @@
   font-family: inherit;
 }
 
-.slot-card__replace:hover {
+.cell-card__replace:hover {
   border-color: var(--accent);
   color: var(--accent);
 }
 
-.slot-card__clear:hover {
+.cell-card__clear:hover {
   border-color: #dc2626;
   color: #dc2626;
 }
 
-/* Toolbar */
-.app__toolbar {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
-  flex-wrap: wrap;
-}
-
-.add-slot-btn {
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  border: 1px dashed var(--accent);
-  border-radius: 8px;
-  background: var(--accent-bg);
-  color: var(--accent);
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.add-slot-btn:hover {
-  background: var(--accent);
-  color: #fff;
-}
+/* ─── Export button ─────────────────────────────────────────────── */
 
 .export-btn {
   padding: 0.625rem 1.25rem;

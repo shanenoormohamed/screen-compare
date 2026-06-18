@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { jsPDF } from 'jspdf'
-import type { Slot } from '../types'
+import type { GridState } from '../types'
 
 interface Props {
-  slots: Slot[]
+  grid: GridState
   disabled: boolean
 }
 
@@ -16,76 +16,117 @@ function loadImage(url: string): Promise<HTMLImageElement> {
   })
 }
 
-export function ExportButton({ slots, disabled }: Props) {
+export function ExportButton({ grid, disabled }: Props) {
   const [exporting, setExporting] = useState(false)
 
   async function handleExport() {
-    const filledSlots = slots.filter((s) => s.imageUrl !== null)
-    if (filledSlots.length === 0) return
-
     setExporting(true)
     try {
       const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' })
       const pageWidth = doc.internal.pageSize.getWidth()
       const pageHeight = doc.internal.pageSize.getHeight()
 
-      const marginTop = 48
-      const marginSide = 24
-      const titleHeight = 28
-      const labelHeight = 20
-      const gutterX = 12
+      const margin = 24
+      const titleHeight = 32
+      const rowLabelColWidth = 80
+      const colHeaderRowHeight = 24
+      const gutter = 6
 
       // Page title
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(16)
       doc.setTextColor(17, 24, 39)
-      doc.text('Screen Compare', marginSide, marginTop)
+      doc.text('Screen Compare', margin, margin + 16)
 
-      const contentTop = marginTop + titleHeight
-      const contentHeight = pageHeight - contentTop - marginSide
+      const tableTop = margin + titleHeight
+      const tableLeft = margin
+      const tableWidth = pageWidth - margin * 2
+      const tableHeight = pageHeight - tableTop - margin
 
-      const slotCount = filledSlots.length
-      const totalGutterWidth = gutterX * (slotCount - 1)
-      const slotWidth = (pageWidth - marginSide * 2 - totalGutterWidth) / slotCount
-      const imageAreaHeight = contentHeight - labelHeight - 8
+      const numCols = grid.columnLabels.length
+      const numRows = grid.rowLabels.length
 
-      for (let i = 0; i < filledSlots.length; i++) {
-        const slot = filledSlots[i]
-        const x = marginSide + i * (slotWidth + gutterX)
+      // Column widths: first col is row labels, rest are equal
+      const dataColsWidth = tableWidth - rowLabelColWidth - gutter
+      const colWidth = (dataColsWidth - gutter * (numCols - 1)) / numCols
 
-        // Label
+      // Row heights: first row is column headers, rest are equal
+      const dataRowsHeight = tableHeight - colHeaderRowHeight - gutter
+      const rowHeight = (dataRowsHeight - gutter * (numRows - 1)) / numRows
+
+      // Column header row
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(9)
+      doc.setTextColor(17, 24, 39)
+      for (let c = 0; c < numCols; c++) {
+        const x = tableLeft + rowLabelColWidth + gutter + c * (colWidth + gutter)
+        const y = tableTop
+        doc.setFillColor(243, 244, 246)
+        doc.setDrawColor(229, 231, 235)
+        doc.rect(x, y, colWidth, colHeaderRowHeight, 'FD')
+        doc.text(
+          grid.columnLabels[c] || `Col ${c + 1}`,
+          x + 4,
+          y + colHeaderRowHeight - 7,
+          { maxWidth: colWidth - 8 }
+        )
+      }
+
+      // Data rows
+      for (let r = 0; r < numRows; r++) {
+        const rowY = tableTop + colHeaderRowHeight + gutter + r * (rowHeight + gutter)
+
+        // Row label cell
         doc.setFont('helvetica', 'bold')
-        doc.setFontSize(10)
+        doc.setFontSize(9)
         doc.setTextColor(17, 24, 39)
-        doc.text(slot.label || `Screen ${i + 1}`, x, contentTop + labelHeight - 4)
+        doc.setFillColor(243, 244, 246)
+        doc.setDrawColor(229, 231, 235)
+        doc.rect(tableLeft, rowY, rowLabelColWidth, rowHeight, 'FD')
+        const rowLabelLines = doc.splitTextToSize(
+          grid.rowLabels[r] || `Row ${r + 1}`,
+          rowLabelColWidth - 8
+        )
+        doc.text(rowLabelLines, tableLeft + 4, rowY + 12)
 
-        if (!slot.imageUrl) continue
+        // Image cells
+        for (let c = 0; c < numCols; c++) {
+          const cellX = tableLeft + rowLabelColWidth + gutter + c * (colWidth + gutter)
+          const cell = grid.cells[r][c]
 
-        try {
-          const img = await loadImage(slot.imageUrl)
-          const naturalW = img.naturalWidth
-          const naturalH = img.naturalHeight
+          if (!cell.imageUrl) {
+            // Empty placeholder
+            doc.setDrawColor(229, 231, 235)
+            doc.setFillColor(249, 250, 251)
+            doc.rect(cellX, rowY, colWidth, rowHeight, 'FD')
+            continue
+          }
 
-          // Fit image into slot bounds while preserving aspect ratio
-          const scaleW = slotWidth / naturalW
-          const scaleH = imageAreaHeight / naturalH
-          const scale = Math.min(scaleW, scaleH)
-          const drawW = naturalW * scale
-          const drawH = naturalH * scale
-          const drawX = x + (slotWidth - drawW) / 2
-          const drawY = contentTop + labelHeight + 4
-
-          const format = slot.imageFile?.type === 'image/png' ? 'PNG' : 'JPEG'
-          doc.addImage(slot.imageUrl, format, drawX, drawY, drawW, drawH)
-        } catch {
-          // Draw placeholder box if image fails
-          doc.setDrawColor(229, 231, 235)
-          doc.setFillColor(249, 250, 251)
-          doc.rect(x, contentTop + labelHeight + 4, slotWidth, imageAreaHeight, 'FD')
-          doc.setFont('helvetica', 'normal')
-          doc.setFontSize(9)
-          doc.setTextColor(107, 114, 128)
-          doc.text('Image unavailable', x + slotWidth / 2, contentTop + labelHeight + imageAreaHeight / 2, { align: 'center' })
+          try {
+            const img = await loadImage(cell.imageUrl)
+            const scaleW = colWidth / img.naturalWidth
+            const scaleH = rowHeight / img.naturalHeight
+            const scale = Math.min(scaleW, scaleH)
+            const drawW = img.naturalWidth * scale
+            const drawH = img.naturalHeight * scale
+            const drawX = cellX + (colWidth - drawW) / 2
+            const drawY = rowY + (rowHeight - drawH) / 2
+            const format = cell.imageFile?.type === 'image/png' ? 'PNG' : 'JPEG'
+            doc.addImage(cell.imageUrl, format, drawX, drawY, drawW, drawH)
+          } catch {
+            doc.setDrawColor(229, 231, 235)
+            doc.setFillColor(249, 250, 251)
+            doc.rect(cellX, rowY, colWidth, rowHeight, 'FD')
+            doc.setFont('helvetica', 'normal')
+            doc.setFontSize(8)
+            doc.setTextColor(107, 114, 128)
+            doc.text(
+              'Image unavailable',
+              cellX + colWidth / 2,
+              rowY + rowHeight / 2,
+              { align: 'center' }
+            )
+          }
         }
       }
 

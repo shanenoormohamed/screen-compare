@@ -1,6 +1,11 @@
-export interface Slot {
+export interface Cell {
   id: string
-  label: string
   imageUrl: string | null
   imageFile: File | null
+}
+
+export interface GridState {
+  columnLabels: string[]
+  rowLabels: string[]
+  cells: Cell[][]  // cells[rowIndex][colIndex]
 }

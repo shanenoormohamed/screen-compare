@@ -11,38 +11,29 @@ import type { TableState } from './types';
 import './App.css';
 
 function App() {
-  const [draftRows, setDraftRows] = useState(2);
-  const [draftCols, setDraftCols] = useState(2);
-  const [table, setTable] = useState<TableState | null>(null);
+  const [table, setTable] = useState<TableState>(() => createEmptyTable(2, 2));
 
   const updateTable = useCallback(
     (updater: TableState | ((prev: TableState) => TableState)) => {
-      setTable((prev) => {
-        if (!prev) return prev;
-        return normalizeRowTitles(
+      setTable((prev) =>
+        normalizeRowTitles(
           typeof updater === 'function' ? updater(prev) : updater,
-        );
-      });
+        ),
+      );
     },
     [],
   );
 
-  const handleGridSelect = useCallback((rows: number, cols: number) => {
-    setDraftRows(rows);
-    setDraftCols(cols);
-  }, []);
-
-  const handleGenerateTable = useCallback(() => {
-    setTable((prev) => {
-      if (!prev) return createEmptyTable(draftRows, draftCols);
-      return resizeTable(prev, draftRows, draftCols);
-    });
-  }, [draftRows, draftCols]);
+  const handleGridSelect = useCallback(
+    (rows: number, cols: number) => {
+      updateTable((prev) => resizeTable(prev, rows, cols));
+    },
+    [updateTable],
+  );
 
   const hasAnyImage = useMemo(
-    () =>
-      table?.cells.some((row) => row.some((cell) => cell !== null)) ?? false,
-    [table],
+    () => table.cells.some((row) => row.some((cell) => cell !== null)),
+    [table.cells],
   );
 
   return (
@@ -50,34 +41,22 @@ function App() {
       <header className="app__header">
         <h1>Screen Compare</h1>
         <p>
-          Pick the grid size, generate the table, drop screenshots, export to
-          PDF.
+          Pick the grid size, label rows and columns, drop screenshots, export
+          to PDF.
         </p>
       </header>
 
       <GridPicker
-        rows={draftRows}
-        cols={draftCols}
+        rows={table.rows}
+        cols={table.cols}
         onSelect={handleGridSelect}
       />
 
-      <button
-        type="button"
-        className="primary-btn"
-        onClick={handleGenerateTable}
-      >
-        Generate table
-      </button>
+      <TableEditor table={table} onChange={updateTable} />
 
-      {table && (
-        <>
-          <TableEditor table={table} onChange={updateTable} />
-
-          <section className="export-section">
-            <ExportButton table={table} disabled={!hasAnyImage} />
-          </section>
-        </>
-      )}
+      <section className="export-section">
+        <ExportButton table={table} disabled={!hasAnyImage} />
+      </section>
     </div>
   );
 }

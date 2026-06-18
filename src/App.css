@@ -98,7 +98,6 @@
   border-color: var(--accent);
 }
 
-.primary-btn,
 .export-btn {
   padding: 0.625rem 1.25rem;
   font-size: 0.875rem;
@@ -111,11 +110,6 @@
   font-family: inherit;
 }
 
-.primary-btn {
-  margin-top: 1rem;
-}
-
-.primary-btn:hover,
 .export-btn:not(:disabled):hover {
   filter: brightness(1.05);
 }

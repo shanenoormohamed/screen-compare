@@ -14,7 +14,7 @@ npm run dev
 ## How to use
 
 1. **Table size** — click and drag across the grid boxes to pick rows and columns.
-2. **Generate table** — creates the table below.
+2. **Table** — appears automatically when you pick the grid size.
 3. **Edit labels** — column headers and row titles.
 4. **Drop media** — PNG, JPG, GIF, or MOV into each cell.
 5. **Generate PDF** — downloads a landscape PDF of the full table.

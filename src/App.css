@@ -98,9 +98,8 @@
   border-color: var(--accent);
 }
 
-.generate-layout-btn {
-  display: block;
-  margin-top: 1rem;
+.primary-btn,
+.export-btn {
   padding: 0.625rem 1.25rem;
   font-size: 0.875rem;
   font-weight: 600;
@@ -112,8 +111,18 @@
   font-family: inherit;
 }
 
-.generate-layout-btn:hover {
+.primary-btn {
+  margin-top: 1rem;
+}
+
+.primary-btn:hover,
+.export-btn:not(:disabled):hover {
   filter: brightness(1.05);
+}
+
+.export-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .table-editor {
@@ -156,10 +165,8 @@
 }
 
 .image-cell {
-  width: 140px;
-  height: 140px;
   min-width: 140px;
-  min-height: 140px;
+  min-height: 120px;
   border: 2px dashed var(--border);
   border-radius: 6px;
   display: flex;
@@ -181,7 +188,8 @@
   border-style: solid;
 }
 
-.image-cell img {
+.image-cell img,
+.image-cell video {
   max-width: 100%;
   max-height: 100px;
   object-fit: contain;
@@ -191,7 +199,16 @@
 .image-cell__placeholder {
   font-size: 0.75rem;
   color: var(--text-muted);
-  text-align: center;
+}
+
+.image-cell__alt {
+  width: 100%;
+  padding: 0.25rem 0.35rem;
+  font-size: 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
 }
 
 .image-cell__clear {
@@ -206,27 +223,6 @@
 
 .export-section {
   margin-top: 2rem;
-}
-
-.export-btn {
-  padding: 0.625rem 1.25rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  border: none;
-  border-radius: 8px;
-  background: var(--accent);
-  color: #fff;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.export-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.export-btn:not(:disabled):hover {
-  filter: brightness(1.05);
 }
 
 @media (prefers-color-scheme: dark) {

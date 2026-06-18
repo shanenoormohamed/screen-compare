@@ -1,28 +1,28 @@
-import { ActionButton } from './ActionButton'
-import { ImageCell } from './ImageCell'
-import { applyBeforeAfterColumns } from '../lib/table'
-import type { CellImage, TableState } from '../types'
+import { ActionButton } from './ActionButton';
+import { ImageCell } from './ImageCell';
+import { applyBeforeAfterColumns } from '../lib/table';
+import type { CellImage, TableState } from '../types';
 
 type TableEditorProps = {
-  table: TableState
-  onChange: (table: TableState) => void
-}
+  table: TableState;
+  onChange: (table: TableState) => void;
+};
 
 export function TableEditor({ table, onChange }: TableEditorProps) {
   const patch = (partial: Partial<TableState>) =>
-    onChange({ ...table, ...partial })
+    onChange({ ...table, ...partial });
 
   const setColumnTitle = (index: number, value: string) => {
-    const columnTitles = [...table.columnTitles]
-    columnTitles[index] = value
-    patch({ columnTitles })
-  }
+    const columnTitles = [...table.columnTitles];
+    columnTitles[index] = value;
+    patch({ columnTitles });
+  };
 
   const setRowTitle = (index: number, value: string) => {
-    const rowTitles = [...table.rowTitles]
-    rowTitles[index] = value
-    patch({ rowTitles })
-  }
+    const rowTitles = [...table.rowTitles];
+    rowTitles[index] = value;
+    patch({ rowTitles });
+  };
 
   const setCell = (row: number, col: number, cell: CellImage | null) => {
     const cells = table.cells.map((rowCells, rowIndex) =>
@@ -31,15 +31,15 @@ export function TableEditor({ table, onChange }: TableEditorProps) {
             colIndex === col ? cell : existing,
           )
         : rowCells,
-    )
-    patch({ cells })
-  }
+    );
+    patch({ cells });
+  };
 
   const clearCell = (row: number, col: number) => {
-    const existing = table.cells[row]?.[col]
-    if (existing?.previewUrl) URL.revokeObjectURL(existing.previewUrl)
-    setCell(row, col, null)
-  }
+    const existing = table.cells[row]?.[col];
+    if (existing?.previewUrl) URL.revokeObjectURL(existing.previewUrl);
+    setCell(row, col, null);
+  };
 
   return (
     <section className="table-editor">
@@ -52,7 +52,7 @@ export function TableEditor({ table, onChange }: TableEditorProps) {
           className="table-editor__preset"
           onClick={() => onChange(applyBeforeAfterColumns(table))}
         >
-          Set columns to Before (main) / After (branch)
+          Set columns to Before / After
         </ActionButton>
       )}
       <div className="table-editor__scroll">
@@ -102,5 +102,5 @@ export function TableEditor({ table, onChange }: TableEditorProps) {
         </table>
       </div>
     </section>
-  )
+  );
 }

@@ -1,10 +1,10 @@
-import type { KeyboardEvent, MouseEvent, ReactNode } from 'react'
+import type { KeyboardEvent, MouseEvent, ReactNode } from 'react';
 
 type ActionButtonProps = {
-  className: string
-  onClick: (event: MouseEvent<HTMLSpanElement>) => void
-  children: ReactNode
-}
+  className: string;
+  onClick: (event: MouseEvent<HTMLSpanElement>) => void;
+  children: ReactNode;
+};
 
 export function ActionButton({
   className,
@@ -19,12 +19,12 @@ export function ActionButton({
       onClick={onClick}
       onKeyDown={(event: KeyboardEvent) => {
         if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault()
-          onClick(event as unknown as MouseEvent<HTMLSpanElement>)
+          event.preventDefault();
+          onClick(event as unknown as MouseEvent<HTMLSpanElement>);
         }
       }}
     >
       {children}
     </span>
-  )
+  );
 }
